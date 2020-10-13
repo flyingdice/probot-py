@@ -1,19 +1,19 @@
 """
-    probot/adapters/asgi/base
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    probot/asgi/adapter
+    ~~~~~~~~~~~~~~~~~~~
 
-    Contains base types to be used/extended by ASGI adapters.
+    Contains abstract ASGI (async) adapter.
 """
 import abc
 from typing import TypeVar
 
-from ... import models
-from ...hints import ProbotAsyncHandler
+from .. import models
+from ..hints import ProbotAsyncHandler
 from .. import base
 
 
-class ASGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
-                  metaclass=abc.ABCMeta):
+class Adapter(base.Adapter[base.AdapterAppT, base.AdapterRequestT, base.AdapterResponseT],
+              metaclass=abc.ABCMeta):
     """
     Asynchronous adapter (ASGI) for handling HTTP requests/responses.
     """
@@ -28,7 +28,7 @@ class ASGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    async def translate(self, handler: ProbotAsyncHandler) -> base.ResponseT:
+    async def translate(self, handler: ProbotAsyncHandler) -> base.AdapterResponseT:
         """
         Wraps handler to translate adapter specific HTTP requests/responses
         before delegating business logic to handler function.
@@ -39,7 +39,7 @@ class ASGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    async def translate_request(self, request: base.RequestT) -> models.Request:
+    async def translate_request(self, request: base.AdapterRequestT) -> models.Request:
         """
         Translate an adapter specific request into a probot request.
 
@@ -49,7 +49,7 @@ class ASGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    def translate_response(self, response: models.Response) -> base.ResponseT:
+    def translate_response(self, response: models.Response) -> base.AdapterResponseT:
         """
         Translate a probot response into an adapter specific response.
 
@@ -59,4 +59,4 @@ class ASGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
 
-ASGIAdapterT = TypeVar('ASGIAdapterT', bound=ASGIAdapter)
+ASGIAdapterT = TypeVar('ASGIAdapterT', bound=Adapter)

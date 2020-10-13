@@ -7,13 +7,13 @@
 import abc
 from typing import TypeVar
 
-from ... import models
-from ...hints import ProbotSyncHandler
+from .. import models
+from ..hints import ProbotSyncHandler
 from .. import base
 
 
-class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
-                  metaclass=abc.ABCMeta):
+class Adapter(base.Adapter[base.AdapterAppT, base.AdapterRequestT, base.AdapterResponseT],
+              metaclass=abc.ABCMeta):
     """
     Synchronous adapter (WSGI) for handling HTTP requests/responses.
     """
@@ -28,7 +28,7 @@ class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    def translate(self, handler: ProbotSyncHandler) -> base.ResponseT:
+    def translate(self, handler: ProbotSyncHandler) -> base.AdapterResponseT:
         """
         Wraps handler to translate adapter specific HTTP requests/responses
         before delegating business logic to handler function.
@@ -39,7 +39,7 @@ class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    def translate_request(self, request: base.RequestT) -> models.Request:
+    def translate_request(self, request: base.AdapterRequestT) -> models.Request:
         """
         Translate an adapter specific request into a probot request.
 
@@ -49,7 +49,7 @@ class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
-    def translate_response(self, response: models.Response) -> base.ResponseT:
+    def translate_response(self, response: models.Response) -> base.AdapterResponseT:
         """
         Translate a probot response into an adapter specific response.
 
@@ -59,4 +59,4 @@ class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         raise NotImplementedError('Must be implemented by derived class')
 
 
-WSGIAdapterT = TypeVar('WSGIAdapterT', bound=WSGIAdapter)
+WSGIAdapterT = TypeVar('WSGIAdapterT', bound=Adapter)

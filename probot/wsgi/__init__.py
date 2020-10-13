@@ -1,6 +1,6 @@
 """
-    probot/adapters/wsgi
-    ~~~~~~~~~~~~~~~~~~~~
+    probot/wsgi
+    ~~~~~~~~~~~
 
     Contains wsynchronous (WSGI) HTTP framework adapters.
 """
