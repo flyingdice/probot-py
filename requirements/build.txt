@@ -1,0 +1,6 @@
+# requirements/build.txt
+#
+# Requirements necessary to build this package.
+
+pipenv==2020.8.13
+setuptools==50.3.0

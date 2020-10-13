@@ -1,0 +1,8 @@
+# requirements/docs.txt
+#
+# Requirements for generating package documentation.
+
+-r base.txt
+
+sphinx==3.2.1
+sphinx_rtd_theme==0.5.0

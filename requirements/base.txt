@@ -1,0 +1,8 @@
+# requirements/base.txt
+#
+# Requirements for using this package.
+
+-r build.txt
+
+dataclasses==0.7; python_version == '3.6'
+PyGithub==1.53
