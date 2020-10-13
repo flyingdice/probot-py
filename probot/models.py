@@ -6,7 +6,7 @@
 """
 from typing import Any, Dict, List, Optional, TypeVar
 
-from pydantic import dataclasses, BaseModel
+from pydantic import BaseModel, dataclasses
 
 from . import github
 
