@@ -5,6 +5,7 @@
     Contains base types to be used/extended by WSGI adapters.
 """
 import abc
+from typing import TypeVar
 
 from ... import models
 from ...hints import ProbotSyncHandler
@@ -56,3 +57,6 @@ class WSGIAdapter(base.Adapter[base.AppT, base.RequestT, base.ResponseT],
         :return: Adapter specific response
         """
         raise NotImplementedError('Must be implemented by derived class')
+
+
+WSGIAdapterT = TypeVar('WSGIAdapterT', bound=WSGIAdapter)

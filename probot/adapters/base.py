@@ -5,7 +5,7 @@
     Contains base types to be used/extended by adapters.
 """
 import abc
-from typing import Generic
+from typing import Generic, TypeVar
 
 from .. import defaults
 from ..hints import AppT, RequestT, ResponseT
@@ -23,3 +23,6 @@ class Adapter(Generic[AppT, RequestT, ResponseT],
                  path: str = defaults.PATH) -> None:
         self.app = app
         self.path = path
+
+
+AdapterT = TypeVar('AdapterT', bound=Adapter)
