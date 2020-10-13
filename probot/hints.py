@@ -9,9 +9,9 @@ from typing import Awaitable, Callable, Optional, TypeVar
 from . import models
 
 AdapterT = TypeVar('AdapterT')
-AppT = TypeVar('AppT')
-RequestT = TypeVar('RequestT')
-ResponseT = TypeVar('ResponseT')
+AdapterAppT = TypeVar('AdapterAppT')
+AdapterRequestT = TypeVar('AdapterRequestT')
+AdapterResponseT = TypeVar('AdapterResponseT')
 
 
 # Type alias for the return value of user defined handler functions.
@@ -42,7 +42,7 @@ ProbotAsyncHandler = Callable[[models.Request], Awaitable[models.Response]]
 
 # Type definition for async adapter handler functions that wrap native handlers
 # and handle adapter specific request/response objects.
-AdapterAsyncHandler = Callable[[RequestT], Awaitable[ResponseT]]
+AdapterAsyncHandler = Callable[[AdapterRequestT], Awaitable[AdapterResponseT]]
 
 # Type definition for sync handler functions that take probot requests
 # and return probot response objects.
@@ -50,4 +50,4 @@ ProbotSyncHandler = Callable[[models.Request], models.Response]
 
 # Type definition for sync adapter handler functions that wrap native handlers
 # and handle adapter specific request/response objects.
-AdapterSyncHandler = Callable[[RequestT], ResponseT]
+AdapterSyncHandler = Callable[[AdapterRequestT], AdapterResponseT]
