@@ -4,8 +4,6 @@
 
     Contains all GitHub specific functionality.
 """
-from typing import Optional
-
 import ghwht
 from github import Github, GithubIntegration
 
@@ -21,22 +19,25 @@ Github = Github
 GithubIntegration = GithubIntegration
 
 
-def create_github_installation_api(event: EventT,
-                                   app_id: str,
-                                   private_key: str) -> Optional[Github]:
+def create_github_api(event: EventT,
+                      app_id: str,
+                      private_key: str) -> Github:
     """
-    Create a new GitHub installation for the given event that was generated for
-    a GitHub App.
+    Create a new GitHub client for the given event.
+
+    If the event doesn't contain installation information (for a GitHub App),
+    an unauthenticated client is returned.
 
     :param event: Event for a GitHub App
     :param app_id: ID of GitHub App we're running
     :param private_key: Private key of the GitHub App we're running
     :return: GitHub instance
     """
-    # TODO: Create an GitHub instance that isn't based on installation? OAuth?
-    if not event.installation_id:
-        return None
+    installation_id = getattr(getattr(event, 'installation', None), 'id', None)
+
+    if not installation_id:
+        return Github()
 
     integration = GithubIntegration(app_id, private_key)
-    authorization = integration.get_access_token(event.installation_id)
+    authorization = integration.get_access_token(installation_id)
     return Github(authorization.token)
