@@ -7,7 +7,6 @@
 from . import api
 from ..wsgi import flask
 
-Config = api.Config
 Context = api.Context
 Event = api.Event
 EventHandlerResponse = api.EventHandlerResponse
@@ -18,5 +17,6 @@ Probot = flask.Probot
 ProbotException = api.ProbotException
 Request = api.Request
 Response = api.Response
+Settings = api.Settings
 
 __all__ = api.ALL

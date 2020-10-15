@@ -8,7 +8,6 @@ from .. import config, errors, hints, models
 
 #: Defines the '__all__' for the API.
 ALL = [
-    'Config',
     'Context',
     'Event',
     'EventHandlerResponse',
@@ -18,12 +17,12 @@ ALL = [
     'Probot',
     'ProbotException',
     'Request',
-    'Response'
+    'Response',
+    'Settings'
 ]
 
 
 # Alias common imports so framework specific packages can access them.
-Config = config.Config
 Context = models.Context
 Event = models.Event
 EventHandlerResponse = hints.EventHandlerResponse
@@ -33,3 +32,4 @@ InvalidEventHandler = errors.InvalidEventHandler
 ProbotException = errors.ProbotException
 Request = models.Request
 Response = models.Response
+Settings = models.Settings

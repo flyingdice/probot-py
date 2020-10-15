@@ -9,7 +9,7 @@ import collections
 import hmac
 from typing import Callable, Dict, Generic, List, Optional, Type, TypeVar
 
-from . import config, defaults, errors, github, models
+from . import defaults, errors, github, models
 from .hints import AdapterAppT, AdapterRequestT, AdapterResponseT, EventHandlerT
 
 
@@ -44,16 +44,16 @@ class App(Generic[AdapterT, EventHandlerT],
         self.private_key = None
         self.webhook_secret = None
 
-    def configure(self, conf: config.Config) -> None:
+    def configure(self, settings: models.Settings) -> None:
         """
-        Configure this app using probot config.
+        Configure this app using probot settings.
 
-        :param conf: Config to use
+        :param settings: Settings to use
         :return: Nothing
         """
-        self.app_id = conf.app_id
-        self.private_key = conf.private_key
-        self.webhook_secret = conf.webhook_secret
+        self.app_id = settings.app_id
+        self.private_key = settings.private_key
+        self.webhook_secret = settings.webhook_secret
 
     def register_handler(self,
                          event_id: models.ID,
@@ -111,7 +111,7 @@ class App(Generic[AdapterT, EventHandlerT],
         """
         return models.Context(
             event=event,
-            github=github.create_github_installation_api(event, app_id, private_key)
+            github=github.create_github_api(event, app_id, private_key)
         )
 
     @staticmethod
@@ -219,15 +219,15 @@ class Probot(Generic[AppT, AdapterT, AdapterAppT],
 
     def __init__(self,
                  app: Optional[AdapterAppT] = None,
-                 conf: Optional[config.Config] = None) -> None:
+                 settings: Optional[models.Settings] = None) -> None:
         if not self.app_cls:
             raise errors.ConfigurationException('Derived Probot types must define "app_cls"')
         if not self.adapter_cls:
             raise errors.ConfigurationException('Derived Probot types must define "adapter_cls"')
 
-        self.config = conf or config.Config()
+        self.settings = settings or models.Settings()
         self.app = self.app_cls(self.adapter_cls(app))
-        self.app.configure(self.config)
+        self.app.configure(self.settings)
 
     def on(self, *event_ids: str) -> Callable[[EventHandlerT], EventHandlerT]:
         """

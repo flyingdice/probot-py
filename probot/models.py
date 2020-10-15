@@ -6,9 +6,9 @@
 """
 from typing import Any, Dict, List, Optional, TypeVar
 
-from pydantic import BaseModel, dataclasses
+from pydantic import BaseSettings, BaseModel, Field, dataclasses
 
-from . import github
+from . import defaults, github
 
 # Alias the 'github' module API for cleaner imports.
 new_event = github.new_event
@@ -56,12 +56,6 @@ class Response:
 ResponseT = TypeVar('ResponseT', bound=Response)
 
 
-class App:
-    """
-    Represents a framework agnostic HTTP app server.
-    """
-
-
 class Context(BaseModel):
     """
     Contains all context and helpers for handling an individual webhook event.
@@ -71,9 +65,20 @@ class Context(BaseModel):
     event: github.EventT
     github: Optional[github.Github]
 
-    @property
-    def installation_id(self):
-        return getattr(getattr(self.event.payload, 'installation', None), 'id', None)
-
     class Config:
         arbitrary_types_allowed = True
+
+
+class Settings(BaseSettings):
+    """
+    Contains probot settings.
+    """
+    app_id: str
+    private_key: str
+    webhook_secret: str
+
+    webhook_path: str = Field(default=defaults.PATH)
+
+    class Config:
+        env_file = '.env'
+        env_prefix = 'PROBOT_'
