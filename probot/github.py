@@ -33,7 +33,7 @@ def create_github_api(event: EventT,
     :param private_key: Private key of the GitHub App we're running
     :return: GitHub instance
     """
-    installation_id = getattr(getattr(event, 'installation', None), 'id', None)
+    installation_id = getattr(getattr(event.payload, 'installation', None), 'id', None)
 
     if not installation_id:
         return Github()
