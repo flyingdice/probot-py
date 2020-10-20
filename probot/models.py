@@ -4,18 +4,20 @@
 
     Contains commonly used model types.
 """
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseSettings, BaseModel, Field, dataclasses
+from pydantic import BaseSettings, Field, ValidationError, dataclasses, generics
 
-from . import defaults, github
+from . import defaults, descriptors, errors, github, log
 
 # Alias the 'github' module API for cleaner imports.
 new_event = github.new_event
 new_id = github.new_id
 ID = github.ID
 Event = github.Event
-EventT = github.EventT
+Repository = github.Repository
+
+EventT = TypeVar('EventT', bound=github.Event)
 
 
 class Request:
@@ -56,19 +58,6 @@ class Response:
 ResponseT = TypeVar('ResponseT', bound=Response)
 
 
-class Context(BaseModel):
-    """
-    Contains all context and helpers for handling an individual webhook event.
-
-    TODO: Should this be Generic[T] where T is EventT?
-    """
-    event: github.EventT
-    github: Optional[github.Github]
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
 class Settings(BaseSettings):
     """
     Contains probot settings.
@@ -80,5 +69,59 @@ class Settings(BaseSettings):
     webhook_path: str = Field(default=defaults.PATH)
 
     class Config:
-        env_file = '.env'
-        env_prefix = 'PROBOT_'
+        env_file = defaults.ENV_FILE
+        env_prefix = defaults.ENV_PREFIX
+
+
+def load_settings(env_file: str = defaults.ENV_FILE) -> Settings:
+    """
+    Load probot settings.
+
+    If the settings failed to load or required values are missing,
+    a SettingsException is raised.
+
+    :param env_file: Path to .env file to load
+    :return: Settings
+    """
+    try:
+        return Settings(_env_file=env_file)
+    except ValidationError as ex:
+        raise errors.SettingsException(str(ex)) from ex
+
+
+class Context(Generic[EventT]):
+    """
+    Contains all context and helpers for handling an individual webhook event.
+    """
+    def __init__(self,
+                 event: EventT,
+                 github: github.Github) -> None:
+        self.event = event
+        self.github = github
+        self.log = log.get_logger(str(event.id))
+
+    @descriptors.cached
+    def repo(self) -> Repository:
+        """
+        Create memoized instance of Repository.
+        """
+        repo_id = self.event.payload.repository.id
+        return self.github.get_repo(repo_id, lazy=True)
+
+
+CheckRunContext = Context[github.CheckRunEvent]
+CheckSuiteContext = Context[github.CheckSuiteEvent]
+CreateContext = Context[github.CreateEvent]
+DeleteContext = Context[github.DeleteEvent]
+ForkContext = Context[github.ForkEvent]
+InstallationContext = Context[github.InstallationEvent]
+InstallationRepositoriesContext = Context[github.InstallationRepositoriesEvent]
+LabelContext = Context[github.LabelEvent]
+PingContext = Context[github.PingEvent]
+PublicContext = Context[github.PublicEvent]
+PullRequestContext = Context[github.PullRequestEvent]
+PushContext = Context[github.PushEvent]
+ReleaseContext = Context[github.ReleaseEvent]
+RepositoryContext = Context[github.RepositoryEvent]
+
+ContextT = TypeVar('ContextT', bound=Context)

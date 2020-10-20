@@ -36,9 +36,9 @@ class InvalidEventHandler(ProbotException):
     """
 
 
-class ConfigurationException(ProbotException):
+class SettingsException(ProbotException):
     """
-    Base class for all configuration related exceptions.
+    Base class for all settings related exceptions.
     """
 
 

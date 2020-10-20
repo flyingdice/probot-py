@@ -100,7 +100,7 @@ class App(Generic[AdapterT, EventHandlerT],
     @staticmethod
     def create_context(event: models.EventT,
                        app_id: str,
-                       private_key: str) -> models.Context:
+                       private_key: str) -> models.ContextT:
         """
         Create context for the given webhook event.
 
@@ -221,11 +221,11 @@ class Probot(Generic[AppT, AdapterT, AdapterAppT],
                  app: Optional[AdapterAppT] = None,
                  settings: Optional[models.Settings] = None) -> None:
         if not self.app_cls:
-            raise errors.ConfigurationException('Derived Probot types must define "app_cls"')
+            raise errors.ConfigurationValueMissing('Derived Probot types must define "app_cls"')
         if not self.adapter_cls:
-            raise errors.ConfigurationException('Derived Probot types must define "adapter_cls"')
+            raise errors.ConfigurationValueMissing('Derived Probot types must define "adapter_cls"')
 
-        self.settings = settings or models.Settings()
+        self.settings = settings or models.load_settings()
         self.app = self.app_cls(self.adapter_cls(app))
         self.app.configure(self.settings)
 

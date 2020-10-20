@@ -5,7 +5,13 @@
     Contains all GitHub specific functionality.
 """
 import ghwht
-from github import Github, GithubIntegration
+
+from github import Github, GithubIntegration, Repository
+
+# Alias PyGithub API for cleaner imports.
+Github = Github
+GithubIntegration = GithubIntegration
+Repository = Repository
 
 # Alias the ghwht API for cleaner imports.
 new_event = ghwht.new_event
@@ -14,9 +20,20 @@ ID = ghwht.ID
 Event = ghwht.Event
 EventT = ghwht.EventT
 
-# Alias PyGithub API for cleaner imports.
-Github = Github
-GithubIntegration = GithubIntegration
+CheckRunEvent = ghwht.CheckRunEvent
+CheckSuiteEvent = ghwht.CheckSuiteEvent
+CreateEvent = ghwht.CreateEvent
+DeleteEvent = ghwht.DeleteEvent
+ForkEvent = ghwht.ForkEvent
+InstallationEvent = ghwht.InstallationEvent
+InstallationRepositoriesEvent = ghwht.InstallationRepositoriesEvent
+LabelEvent = ghwht.LabelEvent
+PingEvent = ghwht.PingEvent
+PublicEvent = ghwht.PublicEvent
+PullRequestEvent = ghwht.PullRequestEvent
+PushEvent = ghwht.PushEvent
+ReleaseEvent = ghwht.ReleaseEvent
+RepositoryEvent = ghwht.RepositoryEvent
 
 
 def create_github_api(event: EventT,

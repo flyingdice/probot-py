@@ -4,7 +4,7 @@
 
     Defines the public API for the `probot` package.
 """
-from .. import config, errors, hints, models
+from .. import errors, github, hints, models
 
 #: Defines the '__all__' for the API.
 ALL = [
@@ -16,9 +16,24 @@ ALL = [
     'InvalidEventHandler',
     'Probot',
     'ProbotException',
+    'Repository',
     'Request',
     'Response',
-    'Settings'
+    'Settings',
+    'CheckRunContext',
+    'CheckSuiteContext',
+    'CreateContext',
+    'DeleteContext',
+    'ForkContext',
+    'InstallationContext',
+    'InstallationRepositoriesContext',
+    'LabelContext',
+    'PingContext',
+    'PublicContext',
+    'PullRequestContext',
+    'PushContext',
+    'ReleaseContext',
+    'RepositoryContext'
 ]
 
 
@@ -30,6 +45,22 @@ HTTPException = errors.HTTPException
 ID = models.ID
 InvalidEventHandler = errors.InvalidEventHandler
 ProbotException = errors.ProbotException
+Repository = models.Repository
 Request = models.Request
 Response = models.Response
 Settings = models.Settings
+
+CheckRunContext = models.Context[github.CheckRunEvent]
+CheckSuiteContext = models.Context[github.CheckSuiteEvent]
+CreateContext = models.Context[github.CreateEvent]
+DeleteContext = models.Context[github.DeleteEvent]
+ForkContext = models.Context[github.ForkEvent]
+InstallationContext = models.Context[github.InstallationEvent]
+InstallationRepositoriesContext = models.Context[github.InstallationRepositoriesEvent]
+LabelContext = models.Context[github.LabelEvent]
+PingContext = models.Context[github.PingEvent]
+PublicContext = models.Context[github.PublicEvent]
+PullRequestContext = models.Context[github.PullRequestEvent]
+PushContext = models.Context[github.PushEvent]
+ReleaseContext = models.Context[github.ReleaseEvent]
+RepositoryContext = models.Context[github.RepositoryEvent]
