@@ -57,7 +57,7 @@ class App(base.App[adapter.WSGIAdapterT, SyncEventHandler]):
 
         for handler in self.handlers[context.event.id]:
             handler_response = self.process_handler(handler, context)
-            if handler_response.status_code > response.status_code:
+            if handler_response.status_code >= response.status_code:
                 response = handler_response
 
         return response
