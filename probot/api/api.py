@@ -22,12 +22,27 @@ ALL = [
     'Settings',
     'CheckRunContext',
     'CheckSuiteContext',
+    'CodeScanningAlertContext',
+    'CommitCommentContext',
+    'ContentReferenceContext',
     'CreateContext',
     'DeleteContext',
+    'DeployKeyContext',
+    'DeploymentContext',
+    'DeploymentStatusContext',
     'ForkContext',
+    'GitHubAppAuthorizationContext',
     'InstallationContext',
     'InstallationRepositoriesContext',
+    'IssueCommentContext',
+    'IssuesContext',
     'LabelContext',
+    'MarketplacePurchaseContext',
+    'MemberContext',
+    'MembershipContext',
+    'MetaContext',
+    'MilestoneContext',
+    'OrganizationContext',
     'PingContext',
     'PublicContext',
     'PullRequestContext',
@@ -50,17 +65,32 @@ Request = models.Request
 Response = models.Response
 Settings = models.Settings
 
-CheckRunContext = models.Context[github.CheckRunEvent]
-CheckSuiteContext = models.Context[github.CheckSuiteEvent]
-CreateContext = models.Context[github.CreateEvent]
-DeleteContext = models.Context[github.DeleteEvent]
-ForkContext = models.Context[github.ForkEvent]
-InstallationContext = models.Context[github.InstallationEvent]
-InstallationRepositoriesContext = models.Context[github.InstallationRepositoriesEvent]
-LabelContext = models.Context[github.LabelEvent]
-PingContext = models.Context[github.PingEvent]
-PublicContext = models.Context[github.PublicEvent]
-PullRequestContext = models.Context[github.PullRequestEvent]
-PushContext = models.Context[github.PushEvent]
-ReleaseContext = models.Context[github.ReleaseEvent]
-RepositoryContext = models.Context[github.RepositoryEvent]
+CheckRunContext = models.CheckRunContext
+CheckSuiteContext = models.CheckSuiteContext
+CodeScanningAlertContext = models.CodeScanningAlertContext
+CommitCommentContext = models.CommitCommentContext
+ContentReferenceContext = models.ContentReferenceContext
+CreateContext = models.CreateContext
+DeleteContext = models.DeleteContext
+DeployKeyContext = models.DeployKeyContext
+DeploymentContext = models.DeploymentContext
+DeploymentStatusContext = models.DeploymentStatusContext
+ForkContext = models.ForkContext
+GitHubAppAuthorizationContext = models.GitHubAppAuthorizationContext
+InstallationContext = models.InstallationContext
+InstallationRepositoriesContext = models.InstallationRepositoriesContext
+IssueCommentContext = models.IssueCommentContext
+IssuesContext = models.IssuesContext
+LabelContext = models.LabelContext
+MarketplacePurchaseContext = models.MarketplacePurchaseContext
+MemberContext = models.MemberContext
+MembershipContext = models.MembershipContext
+MetaContext = models.MetaContext
+MilestoneContext = models.MilestoneContext
+OrganizationContext = models.OrganizationContext
+PingContext = models.PingContext
+PublicContext = models.PublicContext
+PullRequestContext = models.PullRequestContext
+PushContext = models.PushContext
+ReleaseContext = models.ReleaseContext
+RepositoryContext = models.RepositoryContext
