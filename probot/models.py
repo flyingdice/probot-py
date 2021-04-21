@@ -4,9 +4,9 @@
 
     Contains commonly used model types.
 """
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, TypeVar
 
-from pydantic import BaseSettings, Field, ValidationError, dataclasses, generics
+from pydantic import BaseSettings, Field, ValidationError, dataclasses
 
 from . import defaults, descriptors, errors, github, log
 
@@ -15,7 +15,20 @@ new_event = github.new_event
 new_id = github.new_id
 ID = github.ID
 Event = github.Event
+ActionT = github.ActionT
+Issue = github.Issue
+Organization = github.Organization
+PullRequest = github.PullRequest
 Repository = github.Repository
+GitRef = github.GitRef
+GitTree = github.GitTree
+Commit = github.Commit
+GitCommit = github.GitCommit
+GitAuthor = github.GitAuthor
+GithubException = github.GithubException
+
+EventName = github.EventName
+TargetType = github.TargetType
 
 EventT = TypeVar('EventT', bound=github.Event)
 
@@ -100,13 +113,99 @@ class Context(Generic[EventT]):
         self.github = github
         self.log = log.get_logger(str(event.id))
 
+    @property
+    def is_bot(self) -> bool:
+        """
+        Check if event sender is a bot user.
+        """
+        sender = self.event.payload.get('sender')
+        return sender and sender.type == TargetType.Bot
+
+    @descriptors.cached
+    def default_branch(self) -> Issue:
+        """
+        Create a memoized instance of the event repository default branch.
+        """
+        repo = self.repo
+        if not repo:
+            return None
+        return repo.get_branch(repo.default_branch)
+
+    @descriptors.cached
+    def comment(self) -> Issue:
+        """
+        Create a memoized instance of the event comment.
+        """
+        comment = self.event.payload.get('comment')
+        if not comment:
+            return None
+        if self.event.id.name == EventName.CommitComment:
+            return self.repo.get_comment(comment.id)
+        if self.event.id.name == EventName.IssueComment:
+            return self.issue.get_comment(comment.id)
+        if self.event.id.name == EventName.PullRequestReviewComment:
+            return self.pull_request.get_comment(comment.id)
+        raise ValueError('Comment for unknown event name {}'.format(self.event.name))
+
+    @descriptors.cached
+    def installation(self) -> Issue:
+        """
+        Create a memoized instance of the event installation.
+        """
+        installation = self.event.payload.get('installation')
+        if not installation:
+            return None
+        return self.github.get_installation(installation.id)
+
+    @descriptors.cached
+    def issue(self) -> Issue:
+        """
+        Create a memoized instance of the event issue.
+        """
+        issue = self.event.payload.get('issue')
+        if not issue:
+            return None
+        return self.repo.get_issue(issue.number)
+
+    @descriptors.cached
+    def org(self) -> Organization:
+        """
+        Create memoized instance of the event organization.
+        """
+        org = self.event.payload.get('organization')
+        if not org:
+            return self.repo.organization
+        return self.github.get_organization(org.login)
+
+    @descriptors.cached
+    def pull_request(self) -> Issue:
+        """
+        Create a memoized instance of the event pull request.
+        """
+        pr = self.event.payload.get('pull_request')
+        if not pr:
+            return None
+        return self.repo.get_pull(pr.number)
+
+    @descriptors.cached
+    def ref(self) -> Issue:
+        """
+        Create a memoized instance of the event ref.
+        """
+        ref = self.event.payload.get('ref')
+        if not ref:
+            return None
+        return self.repo.get_git_ref(ref)
+
     @descriptors.cached
     def repo(self) -> Repository:
         """
-        Create memoized instance of Repository.
+        Create memoized instance of the event repository.
         """
-        repo_id = self.event.payload.repository.id
-        return self.github.get_repo(repo_id, lazy=True)
+        repo = self.event.payload.get('repository')
+        if not repo:
+            return None
+        return self.github.get_repo(repo.id)
 
 
 CheckRunContext = Context[github.CheckRunEvent]
