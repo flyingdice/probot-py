@@ -48,7 +48,13 @@ ALL = [
     'PullRequestContext',
     'PushContext',
     'ReleaseContext',
-    'RepositoryContext'
+    'RepositoryContext',
+    'GitRef',
+    'GitTree',
+    'Commit',
+    'GitCommit',
+    'GitAuthor',
+    'GithubException'
 ]
 
 
@@ -64,6 +70,12 @@ Repository = models.Repository
 Request = models.Request
 Response = models.Response
 Settings = models.Settings
+GitRef = models.GitRef
+GitTree = models.GitTree
+Commit = models.Commit
+GitCommit = models.GitCommit
+GitAuthor = models.GitAuthor
+GithubException = models.GithubException
 
 CheckRunContext = models.CheckRunContext
 CheckSuiteContext = models.CheckSuiteContext
