@@ -7,7 +7,7 @@
 import inspect
 
 from .. import base, errors, models
-from ..hints import SyncEventHandler
+from ..hints import SyncEventHandler, SyncEventMiddleware
 from . import adapter
 
 
@@ -55,11 +55,33 @@ class App(base.App[adapter.WSGIAdapterT, SyncEventHandler]):
         """
         response = models.Response(status_code=200)
 
-        for handler in self.handlers[context.event.id]:
+        for middleware in self.middleware_for_event(context.event):
+            middleware_response = self.process_middleware(middleware, context)
+            if middleware_response:
+                return middleware_response
+
+        for handler in self.handlers_for_event(context.event):
             handler_response = self.process_handler(handler, context)
             if handler_response.status_code >= response.status_code:
                 response = handler_response
 
+        return response
+
+    def process_middleware(self,
+                           middleware: SyncEventMiddleware,
+                           context: models.Context) -> models.Response:
+        """
+        Run the given middleware with the given context.
+
+        :param middleware: Middleware to run
+        :param context: Context to use
+        :return: Response
+        """
+        try:
+            return self.wrap_response(middleware(context))
+        except Exception as ex:
+            response = models.Response(content=str(ex),
+                                       status_code=500)
         return response
 
     def process_handler(self,
@@ -80,6 +102,18 @@ class App(base.App[adapter.WSGIAdapterT, SyncEventHandler]):
             response = models.Response(content=str(ex),
                                        status_code=500)
         return response
+
+    def validate_middleware(self, middleware: SyncEventMiddleware) -> None:
+        """
+        Validate that the given middleware function is valid for this app.
+
+        If the middleware is not valid, a InvalidEventMiddleware exception is raised.
+
+        :param middleware: Middleware to validate
+        :return: Nothing
+        """
+        if inspect.iscoroutinefunction(middleware):
+            raise errors.InvalidEventHandler('Event middleware functions for WSGI apps must not be "async"')
 
     def validate_handler(self, handler: SyncEventHandler) -> None:
         """

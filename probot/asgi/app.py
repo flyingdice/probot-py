@@ -7,7 +7,7 @@
 import inspect
 
 from .. import base, errors, models
-from ..hints import AsyncEventHandler
+from ..hints import AsyncEventHandler, AsyncEventMiddleware
 from . import adapter
 
 
@@ -41,7 +41,12 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
 
     async def on_event(self, context: models.Context) -> models.Response:
         """
-        Process the given context for all registered handlers.
+        Process the given context for all registered middleware and handlers.
+
+        Middleware functions can optional return a response. If they chose to do so,
+        further processing of the request will be stopped and the response will be immediately
+        returned to the caller. If no response is returned, execution of the middleware chain
+        and handler functions will continue.
 
         Handler functions can optionally return a response. If they chose to do so,
         the response returned by this function will be prioritized by the greatest status_code
@@ -55,11 +60,33 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
         """
         response = models.Response(status_code=200)
 
-        for handler in self.handlers[context.event.id]:
+        for middleware in self.middleware_for_event(context.event):
+            middleware_response = await self.process_middleware(middleware, context)
+            if middleware_response:
+                return middleware_response
+
+        for handler in self.handlers_for_event(context.event):
             handler_response = await self.process_handler(handler, context)
             if handler_response.status_code >= response.status_code:
                 response = handler_response
 
+        return response
+
+    async def process_middleware(self,
+                                 middleware: AsyncEventMiddleware,
+                                 context: models.Context) -> models.Response:
+        """
+        Run the given middleware with the given context.
+
+        :param middleware: Middleware to run
+        :param context: Context to use
+        :return: Response
+        """
+        try:
+            return self.wrap_response(await middleware(context))
+        except Exception as ex:
+            response = models.Response(content=str(ex),
+                                       status_code=500)
         return response
 
     async def process_handler(self,
@@ -80,6 +107,18 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
             response = models.Response(content=str(ex),
                                        status_code=500)
         return response
+
+    def validate_middleware(self, middleware: AsyncEventMiddleware) -> None:
+        """
+        Validate that the given middleware function is valid for this app.
+
+        If the middleware is not valid, a InvalidEventMiddleware exception is raised.
+
+        :param middleware: Middleware to validate
+        :return: Nothing
+        """
+        if not inspect.iscoroutinefunction(middleware):
+            raise errors.InvalidEventMiddleware('Event middleware functions for ASGI apps must be "async"')
 
     def validate_handler(self, handler: AsyncEventHandler) -> None:
         """

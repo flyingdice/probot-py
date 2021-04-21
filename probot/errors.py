@@ -30,6 +30,12 @@ class HTTPException(Exception):
         return f"{class_name}(status_code={self.status_code!r}, detail={self.detail!r})"
 
 
+class InvalidEventMiddleware(ProbotException):
+    """
+    Exception raised when a user registered event middleware function is invalid.
+    """
+
+
 class InvalidEventHandler(ProbotException):
     """
     Exception raised when a user registered event handler function is invalid.

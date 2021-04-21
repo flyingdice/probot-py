@@ -32,6 +32,20 @@ SyncEventHandler = Callable[[models.Context], EventHandlerResponse]
 # Type definition for async or sync event handlers.
 EventHandlerT = TypeVar('EventHandlerT', AsyncEventHandler, SyncEventHandler)
 
+# Type alias for the return value of user defined middleware functions.
+EventMiddlewareResponse = Optional[models.Response]
+
+# Type definition for async user defined middleware functions on a probot app that
+# takes context objects, middleware chains, and returns optional responses.
+AsyncEventMiddleware = Callable[[models.Context], Awaitable[EventMiddlewareResponse]]
+
+# Type definition for sync user defined middleware functions on a probot app that
+# takes context objects, middleware chains, and returns optional responses.
+SyncEventMiddleware = Callable[[models.Context], EventMiddlewareResponse]
+
+# Type definition for async or sync event middleware.
+EventMiddlewareT = TypeVar('EventMiddlewareT', AsyncEventMiddleware, SyncEventMiddleware)
+
 # Type definition for a sync registered user defined handler function
 # for webhook events.
 RegisteredEventHandler = Callable[[EventHandlerT], EventHandlerT]
