@@ -1,27 +1,34 @@
 """
     probot/github
-    ~~~~~~~~~~~~
+    ~~~~~~~~~~~~~
 
     Contains all GitHub specific functionality.
 """
 import ghwht
 
-from github import (Commit, Github, GithubIntegration, GithubException, GitAuthor,
-                    GitCommit, GitRef, GitTree, Issue, Organization, PullRequest, Repository)
+from github import (Commit, Github, GithubIntegration, GithubException, GitAuthor, GitBlob, GitCommit, GitRef,
+                    GitTree, InputGitAuthor, InputGitTreeElement, Issue, Organization, PullRequest, Repository)
+
+from . import log
+
+LOG = log.get_logger(__name__)
 
 # Alias PyGithub API for cleaner imports.
 Github = Github
 GithubIntegration = GithubIntegration
-Issue = Issue
-Organization = Organization
-PullRequest = PullRequest
-Repository = Repository
-GitRef = GitRef
-GitTree = GitTree
-Commit = Commit
-GitCommit = GitCommit
-GitAuthor = GitAuthor
+Issue = Issue.Issue
+Organization = Organization.Organization
+PullRequest = PullRequest.PullRequest
+Repository = Repository.Repository
+GitBlob = GitBlob.GitBlob
+GitRef = GitRef.GitRef
+GitTree = GitTree.GitTree
+Commit = Commit.Commit
+GitCommit = GitCommit.GitCommit
+GitAuthor = GitAuthor.GitAuthor
 GithubException = GithubException
+InputGitAuthor = InputGitAuthor
+InputGitTreeElement = InputGitTreeElement
 
 # Alias the ghwht API for cleaner imports.
 new_event = ghwht.new_event
@@ -84,6 +91,16 @@ def create_github_api(event: EventT,
     if not installation_id or ghwht.is_access_revoked(event):
         return Github()
 
-    integration = GithubIntegration(app_id, private_key)
-    authorization = integration.get_access_token(installation_id)
-    return Github(authorization.token)
+    try:
+        integration = GithubIntegration(app_id, private_key)
+        authorization = integration.get_access_token(installation_id)
+    except GithubException as ex:
+        if ex.status not in (403, 404):
+            raise ex
+
+        LOG.warning('Installation %s no longer has access to app %s',
+                    installation_id,
+                    app_id)
+        return Github()
+    else:
+        return Github(authorization.token)
