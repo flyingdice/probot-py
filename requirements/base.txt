@@ -5,4 +5,5 @@
 -r build.txt
 
 dataclasses==0.7; python_version == '3.6'
+pydantic==1.8.1
 PyGithub==1.53
