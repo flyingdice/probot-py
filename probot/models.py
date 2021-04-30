@@ -6,7 +6,7 @@
 """
 from typing import Any, Dict, Generic, List, TypeVar
 
-from pydantic import BaseSettings, Field, ValidationError, dataclasses
+from pydantic import BaseSettings, BaseModel, Field, ValidationError
 
 from . import defaults, descriptors, errors, github, log
 
@@ -20,55 +20,21 @@ Issue = github.Issue
 Organization = github.Organization
 PullRequest = github.PullRequest
 Repository = github.Repository
+Github = github.Github
+GitBlob = github.GitBlob
 GitRef = github.GitRef
 GitTree = github.GitTree
 Commit = github.Commit
 GitCommit = github.GitCommit
 GitAuthor = github.GitAuthor
 GithubException = github.GithubException
+InputGitAuthor = github.InputGitAuthor
+InputGitTreeElement = github.InputGitTreeElement
 
 EventName = github.EventName
 TargetType = github.TargetType
 
 EventT = TypeVar('EventT', bound=github.Event)
-
-
-class Request:
-    """
-    Represents a framework agnostic HTTP request.
-
-    TODO - Add helper methods for translating framework-specific request models
-    into this type upon creation.
-    """
-    def __init__(self,
-                 method: str,
-                 body_raw: bytes,
-                 body_json: Dict[str, Any],
-                 query: Dict[str, List[str]] = None,
-                 headers: Dict[str, List[str]] = None) -> None:
-        self.method = method
-        self.body_raw = body_raw
-        self.body_json = body_json
-        self.query = query
-        self.headers = headers
-
-
-# TypeVar for types that derive from :class:`~probot.models.Request`.
-RequestT = TypeVar('RequestT', bound=Request)
-
-
-@dataclasses.dataclass
-class Response:
-    """
-    Represents a framework agnostic HTTP response.
-    """
-    status_code: int = 200
-    content: str = ''
-    headers: Any = None
-
-
-# TypeVar for types that derive from :class:`~probot.models.Response`.
-ResponseT = TypeVar('ResponseT', bound=Response)
 
 
 class Settings(BaseSettings):
@@ -100,6 +66,43 @@ def load_settings(env_file: str = defaults.ENV_FILE) -> Settings:
         return Settings(_env_file=env_file)
     except ValidationError as ex:
         raise errors.SettingsException(str(ex)) from ex
+
+
+class Request:
+    """
+    Represents a framework agnostic HTTP request.
+
+    TODO - Add helper methods for translating framework-specific request models
+    into this type upon creation.
+    """
+    def __init__(self,
+                 method: str,
+                 body_raw: bytes,
+                 body_json: Dict[str, Any],
+                 query: Dict[str, List[str]] = None,
+                 headers: Dict[str, List[str]] = None) -> None:
+        self.method = method
+        self.body_raw = body_raw
+        self.body_json = body_json
+        self.query = query
+        self.headers = headers
+
+
+# TypeVar for types that derive from :class:`~probot.models.Request`.
+RequestT = TypeVar('RequestT', bound=Request)
+
+
+class Response(BaseModel):
+    """
+    Represents a framework agnostic HTTP response.
+    """
+    status_code: int = 200
+    content: str = ''
+    headers: Any = None
+
+
+# TypeVar for types that derive from :class:`~probot.models.Response`.
+ResponseT = TypeVar('ResponseT', bound=Response)
 
 
 class Context(Generic[EventT]):

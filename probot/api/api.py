@@ -49,12 +49,17 @@ ALL = [
     'PushContext',
     'ReleaseContext',
     'RepositoryContext',
+    'Github',
+    'GitBlob',
     'GitRef',
     'GitTree',
     'Commit',
     'GitCommit',
     'GitAuthor',
-    'GithubException'
+    'GithubException',
+    'PullRequest',
+    'InputGitAuthor',
+    'InputGitTreeElement'
 ]
 
 
@@ -66,16 +71,21 @@ HTTPException = errors.HTTPException
 ID = models.ID
 InvalidEventHandler = errors.InvalidEventHandler
 ProbotException = errors.ProbotException
+PullRequest = models.PullRequest
 Repository = models.Repository
 Request = models.Request
 Response = models.Response
 Settings = models.Settings
+Github = models.Github
+GitBlob = models.GitBlob
 GitRef = models.GitRef
 GitTree = models.GitTree
 Commit = models.Commit
 GitCommit = models.GitCommit
 GitAuthor = models.GitAuthor
 GithubException = models.GithubException
+InputGitAuthor = models.InputGitAuthor
+InputGitTreeElement = models.InputGitTreeElement
 
 CheckRunContext = models.CheckRunContext
 CheckSuiteContext = models.CheckSuiteContext
