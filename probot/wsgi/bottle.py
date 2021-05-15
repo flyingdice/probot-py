@@ -9,7 +9,7 @@ from typing import Callable
 import bottle
 
 from .. import base, models
-from ..hints import ProbotSyncHandler
+from ..hints import ProbotSyncHandler, ProbotSyncLifecycleEventHandler
 from . import adapter, app
 
 AdapterApp = bottle.Bottle
@@ -29,6 +29,18 @@ class Adapter(adapter.Adapter[AdapterApp, AdapterRequest, AdapterResponse]):
         :return: Nothing
         """
         self.app.post(self.path)(self.translate(handler))
+
+    def register_lifecycle_event(self,
+                                 event: models.LifecycleEvent,
+                                 handler: ProbotSyncLifecycleEventHandler) -> None:
+        """
+        Register lifecycle event handler function for the adapter.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: Handler function to be called for the given lifecycle event
+        :return: Nothing
+        """
+        raise NotImplementedError('Bottle lifecycle events not implemented')
 
     def translate(self, handler: ProbotSyncHandler) -> Callable[[AdapterRequest], AdapterResponse]:
         """

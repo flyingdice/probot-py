@@ -8,7 +8,7 @@ import abc
 from typing import TypeVar
 
 from .. import models
-from ..hints import ProbotSyncHandler
+from ..hints import ProbotSyncHandler, ProbotSyncLifecycleEventHandler
 from .. import base
 
 
@@ -23,6 +23,19 @@ class Adapter(base.Adapter[base.AdapterAppT, base.AdapterRequestT, base.AdapterR
         Register request handler function for the adapter.
 
         :param handler: Handler function to be called for each request
+        :return: Nothing
+        """
+        raise NotImplementedError('Must be implemented by derived class')
+
+    @abc.abstractmethod
+    def register_lifecycle_event(self,
+                                 event: models.LifecycleEvent,
+                                 handler: ProbotSyncLifecycleEventHandler) -> None:
+        """
+        Register lifecycle event handler function for the adapter.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: Handler function to be called for the given lifecycle event
         :return: Nothing
         """
         raise NotImplementedError('Must be implemented by derived class')

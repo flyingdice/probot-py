@@ -15,6 +15,19 @@ class App(base.App[adapter.WSGIAdapterT, SyncEventHandler]):
     """
     App for WSGI (sync) adapters.
     """
+    def on_lifecycle_event(self, event: models.LifecycleEvent) -> None:
+        """
+        Handler function called for each lifecycle event.
+
+        This is responsible for invoking all handlers registered
+        for the specific lifecycle event.
+
+        :param event: Lifecycle event to handle
+        :return: Nothing
+        """
+        for handler in self.handlers_for_lifecycle_event(event):
+            handler(event)
+
     def on_request(self, request: models.Request) -> models.Response:
         """
         Handler function called for each webhook event.

@@ -9,7 +9,7 @@ from typing import Awaitable, Callable
 from starlette import applications, requests, responses
 
 from .. import base, models
-from ..hints import ProbotAsyncHandler
+from ..hints import LifecycleEventHandlerResponse, ProbotAsyncHandler, ProbotAsyncLifecycleEventHandler
 from . import adapter, app
 
 AdapterApp = applications.Starlette
@@ -29,6 +29,34 @@ class Adapter(adapter.Adapter[AdapterApp, AdapterRequest, AdapterResponse]):
         :return: Nothing
         """
         self.app.router.route(self.path, self.methods)(self.translate(handler))
+
+    def register_lifecycle_event(self,
+                                 event: models.LifecycleEvent,
+                                 handler: ProbotAsyncLifecycleEventHandler) -> None:
+        """
+        Register lifecycle event handler function for the adapter.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: Handler function to be called for the given lifecycle event
+        :return: Nothing
+        """
+        self.app.on_event(event.value)(self.translate_lifecycle_event(event, handler))
+
+    @staticmethod
+    def translate_lifecycle_event(
+        event: models.LifecycleEvent,
+        handler: ProbotAsyncLifecycleEventHandler
+    ) -> Callable[[], Awaitable[LifecycleEventHandlerResponse]]:
+        """
+        Translate lifecycle events and delegate into Probot lifecycle event handlers.
+
+        :param event: Lifecycle event to translate
+        :param handler: Handler function to wrap
+        :return: Wrapper function
+        """
+        async def wrapper():
+            return await handler(event)
+        return wrapper
 
     def translate(self, handler: ProbotAsyncHandler) -> Callable[[AdapterRequest], Awaitable[AdapterResponse]]:
         """

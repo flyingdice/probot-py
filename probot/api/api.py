@@ -37,6 +37,8 @@ ALL = [
     'IssueCommentContext',
     'IssuesContext',
     'LabelContext',
+    'LifecycleEvent',
+    'LifecycleEventHandlerResponse',
     'MarketplacePurchaseContext',
     'MemberContext',
     'MembershipContext',
@@ -76,6 +78,8 @@ Repository = models.Repository
 Request = models.Request
 Response = models.Response
 Settings = models.Settings
+LifecycleEvent = models.LifecycleEvent
+LifecycleEventHandlerResponse = hints.LifecycleEventHandlerResponse
 Github = models.Github
 GitBlob = models.GitBlob
 GitRef = models.GitRef

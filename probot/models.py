@@ -4,6 +4,8 @@
 
     Contains commonly used model types.
 """
+import enum
+
 from typing import Any, Dict, Generic, List, TypeVar
 
 from pydantic import BaseSettings, BaseModel, Field, ValidationError
@@ -66,6 +68,14 @@ def load_settings(env_file: str = defaults.ENV_FILE) -> Settings:
         return Settings(_env_file=env_file)
     except ValidationError as ex:
         raise errors.SettingsException(str(ex)) from ex
+
+
+class LifecycleEvent(str, enum.Enum):
+    """
+    Enumeration for all known Probot lifecycle events.
+    """
+    Startup = 'startup'
+    Shutdown = 'shutdown'
 
 
 class Request:

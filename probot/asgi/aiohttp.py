@@ -9,7 +9,7 @@ from typing import Awaitable, Callable
 from aiohttp import web
 
 from .. import base, models
-from ..hints import ProbotAsyncHandler
+from ..hints import LifecycleEventHandlerResponse, ProbotAsyncHandler, ProbotAsyncLifecycleEventHandler
 from . import adapter, app
 
 AdapterApp = web.Application
@@ -29,6 +29,35 @@ class Adapter(adapter.Adapter[AdapterApp, AdapterRequest, AdapterResponse]):
         :return: Nothing
         """
         self.app.add_routes([web.post(self.path, self.translate(handler))])
+
+    def register_lifecycle_event(self,
+                                 event: models.LifecycleEvent,
+                                 handler: ProbotAsyncLifecycleEventHandler) -> None:
+        """
+        Register lifecycle event handler function for the adapter.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: Handler function to be called for the given lifecycle event
+        :return: Nothing
+        """
+        self.app.on_startup.append(self.translate_lifecycle_event(event, handler))
+        self.app.on_shutdown.append(self.translate_lifecycle_event(event, handler))
+
+    @staticmethod
+    def translate_lifecycle_event(
+        event: models.LifecycleEvent,
+        handler: ProbotAsyncLifecycleEventHandler
+    ) -> Callable[[], Awaitable[LifecycleEventHandlerResponse]]:
+        """
+        Translate lifecycle events and delegate into Probot lifecycle event handlers.
+
+        :param event: Lifecycle event to translate
+        :param handler: Handler function to wrap
+        :return: Wrapper function
+        """
+        async def wrapper(_app: AdapterApp):
+            return await handler(event)
+        return wrapper
 
     def translate(self, handler: ProbotAsyncHandler) -> Callable[[AdapterRequest], Awaitable[AdapterResponse]]:
         """

@@ -15,6 +15,19 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
     """
     App for ASGI (async) adapters.
     """
+    async def on_lifecycle_event(self, event: models.LifecycleEvent) -> None:
+        """
+        Handler function called for each lifecycle event.
+
+        This is responsible for invoking all handlers registered
+        for the specific lifecycle event.
+
+        :param event: Lifecycle event to handle
+        :return: Nothing
+        """
+        for handler in self.handlers_for_lifecycle_event(event):
+            await handler(event)
+
     async def on_request(self, request: models.Request) -> models.Response:
         """
         Handler function called for each webhook event.
@@ -85,9 +98,8 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
         try:
             return self.wrap_response(await middleware(context))
         except Exception as ex:
-            response = models.Response(content=str(ex),
-                                       status_code=500)
-        return response
+            return models.Response(content=str(ex),
+                                   status_code=500)
 
     async def process_handler(self,
                               handler: AsyncEventHandler,
@@ -104,9 +116,8 @@ class App(base.App[adapter.ASGIAdapterT, AsyncEventHandler]):
         try:
             return self.wrap_response(await handler(context))
         except Exception as ex:
-            response = models.Response(content=str(ex),
-                                       status_code=500)
-        return response
+            return models.Response(content=str(ex),
+                                   status_code=500)
 
     def validate_middleware(self, middleware: AsyncEventMiddleware) -> None:
         """

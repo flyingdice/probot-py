@@ -10,9 +10,11 @@ from ..asgi import aiohttp
 Context = api.Context
 Event = api.Event
 EventHandlerResponse = api.EventHandlerResponse
+LifecycleEventHandlerResponse = api.LifecycleEventHandlerResponse
 HTTPException = api.HTTPException
 ID = api.ID
 InvalidEventHandler = api.InvalidEventHandler
+LifecycleEvent = api.LifecycleEvent
 Probot = aiohttp.Probot
 ProbotException = api.ProbotException
 Request = api.Request

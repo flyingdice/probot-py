@@ -9,7 +9,7 @@ from typing import Callable
 import flask
 
 from .. import base, models
-from ..hints import ProbotSyncHandler
+from ..hints import ProbotSyncHandler, ProbotSyncLifecycleEventHandler
 from . import adapter, app
 
 AdapterApp = flask.Flask
@@ -29,6 +29,18 @@ class Adapter(adapter.Adapter[AdapterApp, AdapterRequest, AdapterResponse]):
         :return: Nothing
         """
         self.app.route(self.path, methods=self.methods)(self.translate(handler))
+
+    def register_lifecycle_event(self,
+                                 event: models.LifecycleEvent,
+                                 handler: ProbotSyncLifecycleEventHandler) -> None:
+        """
+        Register lifecycle event handler function for the adapter.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: Handler function to be called for the given lifecycle event
+        :return: Nothing
+        """
+        raise NotImplementedError('Flask lifecycle events not implemented')
 
     def translate(self, handler: ProbotSyncHandler) -> Callable[[AdapterRequest], AdapterResponse]:
         """

@@ -11,7 +11,8 @@ from collections import defaultdict
 from typing import Callable, Dict, Generic, List, Optional, Set, Type, TypeVar
 
 from . import defaults, errors, github, models
-from .hints import AdapterAppT, AdapterRequestT, AdapterResponseT, EventHandlerT, EventMiddlewareT
+from .hints import (AdapterAppT, AdapterRequestT, AdapterResponseT, EventHandlerT,
+                    EventMiddlewareT, LifecycleEventHandlerT, LifecycleEventHandlerResponse)
 
 
 class Adapter(Generic[AdapterAppT, AdapterRequestT, AdapterResponseT],
@@ -34,6 +35,9 @@ AdapterT = TypeVar('AdapterT', bound=Adapter)
 # Type alias for collection of event handlers keyed on event name/action.
 EventHandlerCollection = Dict[models.EventName, Dict[Optional[models.ActionT], List[EventHandlerT]]]
 
+# Type alias for collection of app lifecycle handlers keyed by name.
+LifecycleEventHandlerCollection = Dict[models.LifecycleEvent, List[LifecycleEventHandlerT]]
+
 # Type alias for collection of event middleware keyed on event name/action.
 EventMiddlewareCollection = Dict[models.EventName, Dict[Optional[models.ActionT], List[EventMiddlewareT]]]
 
@@ -48,8 +52,8 @@ class App(Generic[AdapterT, EventHandlerT],
     """
     def __init__(self, adapter: AdapterT) -> None:
         self.adapter = adapter
-        self.adapter.register(self.on_request)
         self.handlers: EventHandlerCollection = defaultdict(lambda: defaultdict(list))
+        self.lifecycle_event_handlers: LifecycleEventHandlerCollection = defaultdict(list)
         self.event_middleware: EventMiddlewareCollection = defaultdict(lambda: defaultdict(list))
         self.global_middleware: GlobalMiddlewareCollection = []
         self.app_id = None
@@ -66,6 +70,9 @@ class App(Generic[AdapterT, EventHandlerT],
         self.app_id = settings.app_id
         self.private_key = settings.private_key
         self.webhook_secret = settings.webhook_secret
+        self.adapter.register(self.on_request)
+        self.adapter.register_lifecycle_event(models.LifecycleEvent.Startup, self.on_lifecycle_event)
+        self.adapter.register_lifecycle_event(models.LifecycleEvent.Shutdown, self.on_lifecycle_event)
 
     def register_global_middleware(self, middleware: EventMiddlewareT) -> None:
         """
@@ -93,6 +100,21 @@ class App(Generic[AdapterT, EventHandlerT],
         """
         self.validate_middleware(middleware)
         self.event_middleware[event_id.name][event_id.action].append(middleware)
+
+    def register_lifecycle_event_handler(self,
+                                         event: models.LifecycleEvent,
+                                         handler: LifecycleEventHandlerT) -> None:
+        """
+        Register the user defined lifecycle event handler function for startup notifications.
+
+        If the handler is not valid for this app, a InvalidEventHandler exception is raised.
+
+        :param event: Lifecycle event to register handler for
+        :param handler: User defined handler function to run
+        :return: Nothing
+        """
+        self.validate_handler(handler)
+        self.lifecycle_event_handlers[event].append(handler)
 
     def register_handler(self,
                          event_id: models.ID,
@@ -134,6 +156,19 @@ class App(Generic[AdapterT, EventHandlerT],
         raise NotImplementedError('Must be implemented by derived class')
 
     @abc.abstractmethod
+    def on_lifecycle_event(self, event: models.LifecycleEvent) -> None:
+        """
+        Handler function called for each lifecycle event.
+
+        This is responsible for invoking all handlers registered
+        for the specific lifecycle event.
+
+        :param event: Lifecycle event to handle
+        :return: Nothing
+        """
+        raise NotImplementedError('Must be implemented by derived class')
+
+    @abc.abstractmethod
     def on_request(self, request: models.Request) -> models.Response:
         """
         Handler function called for each HTTP request.
@@ -169,6 +204,15 @@ class App(Generic[AdapterT, EventHandlerT],
         event_handlers = self.handlers[event.id.name][None]
         action_handlers = self.handlers[event.id.name][event.id.action]
         return set(event_handlers + action_handlers)
+
+    def handlers_for_lifecycle_event(self, event: models.LifecycleEvent) -> Set[LifecycleEventHandlerT]:
+        """
+        Get list of handlers that should be run for the given lifecycle event.
+
+        :param event: Event to get matching handlers for
+        :return: List of handlers
+        """
+        return set(self.lifecycle_event_handlers[event])
 
     @staticmethod
     def create_context(event: models.EventT,
@@ -301,6 +345,23 @@ class Probot(Generic[AppT, AdapterT, AdapterAppT],
         self.settings = settings or models.load_settings()
         self.app = self.app_cls(self.adapter_cls(app))
         self.app.configure(self.settings)
+
+    def event(self, *events: str) -> Callable[[LifecycleEventHandlerT], LifecycleEventHandlerResponse]:
+        """
+        Register functions to be notified upon bot lifecycle events.
+
+        @app.event('shutdown')
+        def on_shutdown():
+            ...
+
+        :param events: Identifiers to map to handler
+        :return: Registered lifecycle event handler function.
+        """
+        def wrapper(handler: LifecycleEventHandlerT) -> LifecycleEventHandlerResponse:
+            for event in events:
+                self.app.register_lifecycle_event_handler(models.LifecycleEvent(event), handler)
+            return handler
+        return wrapper
 
     def use(self, *event_ids: str) -> Callable[[EventMiddlewareT], EventMiddlewareT]:
         """

@@ -46,6 +46,20 @@ SyncEventMiddleware = Callable[[models.Context], EventMiddlewareResponse]
 # Type definition for async or sync event middleware.
 EventMiddlewareT = TypeVar('EventMiddlewareT', AsyncEventMiddleware, SyncEventMiddleware)
 
+# Type alias for the return value of user defined lifecycle event functions.
+LifecycleEventHandlerResponse = None
+
+# Type definition for async user defined lifecycle event functions on a probot app that
+# takes no parameters and returns nothing.
+AsyncLifecycleEventHandler = Callable[[models.LifecycleEvent], Awaitable[LifecycleEventHandlerResponse]]
+
+# Type definition for sync user defined lifecycle event functions on a probot app that
+# takes no parameters and returns nothing.
+SyncLifecycleEventHandler = Callable[[models.LifecycleEvent], LifecycleEventHandlerResponse]
+
+# Type definition for async or sync lifecycle event functions.
+LifecycleEventHandlerT = TypeVar('LifecycleEventHandlerT', AsyncLifecycleEventHandler, SyncLifecycleEventHandler)
+
 # Type definition for a sync registered user defined handler function
 # for webhook events.
 RegisteredEventHandler = Callable[[EventHandlerT], EventHandlerT]
@@ -65,3 +79,11 @@ ProbotSyncHandler = Callable[[models.Request], models.Response]
 # Type definition for sync adapter handler functions that wrap native handlers
 # and handle adapter specific request/response objects.
 AdapterSyncHandler = Callable[[AdapterRequestT], AdapterResponseT]
+
+# Type definition for async lifecycle event handler functions that wrap native handlers
+# and handle adapter specific request/response objects.
+ProbotAsyncLifecycleEventHandler = Callable[[models.LifecycleEvent], Awaitable[LifecycleEventHandlerResponse]]
+
+# Type definition for sync lifecycle event handler functions that wrap native handlers
+# and handle adapter specific request/response objects.
+ProbotSyncLifecycleEventHandler = Callable[[models.LifecycleEvent], LifecycleEventHandlerResponse]
